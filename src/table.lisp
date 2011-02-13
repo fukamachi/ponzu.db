@@ -5,6 +5,7 @@
                 :create-view-from-class
                 :select
                 :sql-expression
+                :sql-operator
                 :table-exists-p)
   (:import-from :clsql-sys :standard-db-class)
   (:import-from :ponzu.db.record
@@ -24,7 +25,7 @@
     (save new-instance)
     new-instance))
 
-(defun fetch (table ids-or-key &key where order offset limit group-by)
+(defun fetch (table ids-or-key &key where conditions order offset limit group-by)
   (etypecase ids-or-key
     (keyword (ecase ids-or-key
                (:first (car (select table :limit 1 :offset offset :flatp t)))
@@ -32,9 +33,12 @@
     (number
      (car (select table
                   :where
-                  (if where
-                      [and [= [id] ids-or-key] where]
-                      [= [id] ids-or-key])
+                  (cond
+                    ((and where conditions)
+                     [and [= [id] ids-or-key] where (normalize-conditions conditions)])
+                    (where [and [= [id] ids-or-key] where])
+                    (conditions [and [= [id] ids-or-key] (normalize-conditions conditions)])
+                    (t [= [id] ids-or-key]))
                   :flatp t)))
     (cons (select table
                   :where
@@ -52,3 +56,8 @@
             (cons '(:metaclass <ponzu-db-table>) `,cl-options)))
      (unless (table-exists-p ',class)
        (create-view-from-class ',class))))
+
+(defun normalize-conditions (conditions)
+  `(,(sql-operator 'and)
+     ,@(loop for (k v) on conditions by #'cddr
+             collect [= (sql-expression 'argument k) v])))

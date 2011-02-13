@@ -32,23 +32,27 @@
 (let ((me (make-instance 'person)))
   (setf (slot-value me 'name) "Eitarow Fukamachi")
   (save me))
-
-(let ((rec (car (fetch 'person :first))))
+(let ((rec (fetch 'person :first)))
   (is-type rec 'person)
-  (is (slot-value rec 'name) "Eitarow Fukamachi" "inserted record")
+  (is (slot-value rec 'name) "Eitarow Fukamachi" "inserted record"))
 
-  (diag "update record")
+(diag "fetch with conditions")
+(isnt (fetch 'person :first :conditions '(:name "Eitarow Fukamachi")) nil)
+
+(diag "fetch with where")
+(isnt (fetch 'person :first :where "name = \"Eitarow Fukamachi\"") nil)
+
+(diag "update record")
+(let ((rec (fetch 'person :first)))
   (setf (slot-value rec 'name) "Tomohiro Matsuyama")
-  (save rec)
-)
-
-(let ((rec (car (fetch 'person :first))))
+  (save rec))
+(let ((rec (fetch 'person :first)))
   (is-type rec 'person)
-  (is (slot-value rec 'name) "Tomohiro Matsuyama" "updated")
+  (is (slot-value rec 'name) "Tomohiro Matsuyama" "updated"))
 
-  (diag "delete")
-  (destroy rec)
-  (is (fetch 'person :first) nil "destroy"))
+(diag "delete")
+(destroy (fetch 'person :first))
+(is (fetch 'person :first) nil "destroy")
 
 (clsql:disconnect)
 
