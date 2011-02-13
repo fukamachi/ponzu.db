@@ -2,3 +2,5 @@
 *.dx32fsl
 *.dx64fsl
 *.x86f
+test.db
+

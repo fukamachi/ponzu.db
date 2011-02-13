@@ -9,13 +9,10 @@
   :version "1.0"
   :author "Eitarow Fukamachi"
   :license "LLGPL"
-  :depends-on (:alexandria
-               :cl-ppcre
-               :closer-mop
-               :clsql)
+  :depends-on (:clsql)
   :components ((:module "src"
                 :serial t
                 :components
                 ((:file "util")
-                 (:file "table")
-                 (:file "record")))))
+                 (:file "record")
+                 (:file "table")))))
