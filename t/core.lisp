@@ -1,4 +1,4 @@
-(ponzu.db.util:namespace ponzu.db-test
+(ponzu.db.util:namespace ponzu.db-test.core
   (:use :cl
         :cl-test-more
         :clsql
@@ -37,7 +37,7 @@
   (is (slot-value rec 'name) "Eitarow Fukamachi" "inserted record"))
 
 (diag "fetch with conditions")
-(isnt (fetch 'person :first :conditions '(:name "Eitarow Fukamachi")) nil)
+(is (fetch 'person :first :conditions '(:name "Eitarow Fukamachi")) nil)
 
 (diag "fetch with where")
 (isnt (fetch 'person :first :where "name = \"Eitarow Fukamachi\"") nil)
