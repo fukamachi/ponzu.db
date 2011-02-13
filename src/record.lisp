@@ -5,7 +5,8 @@
                 :delete-instance-records)
   (:export :<ponzu.db.record>
            :save
-           :destroy))
+           :destroy
+           :attributes))
 
 (defclass <ponzu-db-record> () ())
 
@@ -14,3 +15,6 @@
 
 (defmethod destroy ((this <ponzu-db-record>))
   (delete-instance-records this))
+
+(defmethod attributes ((this <ponzu-db-table>))
+  (list-attributes this))
