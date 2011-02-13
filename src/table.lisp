@@ -27,15 +27,15 @@
 (defun fetch (table ids-or-key &key where order offset limit group-by)
   (etypecase ids-or-key
     (keyword (ecase ids-or-key
-               (:first (select table :limit 1 :offset offset :flatp t))
+               (:first (car (select table :limit 1 :offset offset :flatp t)))
                (:all (select table :flatp t))))
     (number
-     (select table
-             :where
-             (if where
-                 [and [= [id] ids-or-key] where]
-                 [= [id] ids-or-key])
-             :flatp t))
+     (car (select table
+                  :where
+                  (if where
+                      [and [= [id] ids-or-key] where]
+                      [= [id] ids-or-key])
+                  :flatp t)))
     (cons (select table
                   :where
                   (if where
