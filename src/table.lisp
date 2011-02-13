@@ -12,33 +12,36 @@
                 :save)
   (:export :<ponzu-db-table>
            :deftable
-           :fetch
-           :fetch-one
-           :fetch-all
-           :fetch-by-sql))
+           :create
+           :fetch))
 
 (enable-sql-reader-syntax)
 
 (defclass <ponzu-db-table> (standard-db-class) ())
 
+(defun create (table &rest initargs)
+  (let ((new-instance (apply #'make-instance table initargs)))
+    (save new-instance)
+    new-instance))
+
 (defun fetch (table ids-or-key &key where order offset limit group-by)
   (etypecase ids-or-key
     (keyword (ecase ids-or-key
-               (:first (select :from table :limit 1 :offset offset))
-               (:all (select :from table))))
+               (:first (select table :limit 1 :offset offset :flatp t))
+               (:all (select table :flatp t))))
     (number
-     (select [*]
-             :from (sql-expression :table table)
+     (select table
              :where
              (if where
                  [and [= [id] ids-or-key] where]
-                 [= [id] ids-or-key])))
-    (cons (select [*]
-                  :from (sql-expression :table table)
+                 [= [id] ids-or-key])
+             :flatp t))
+    (cons (select table
                   :where
                   (if where
                       [and [in [id] ids-or-key] where]
-                      [in [id] ids-or-key])))))
+                      [in [id] ids-or-key])
+                  :flatp t))))
 
 (defmacro deftable (class supers slots &optional cl-options)
   `(prog1
