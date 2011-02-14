@@ -37,7 +37,7 @@
   (is (slot-value rec 'name) "Eitarow Fukamachi" "inserted record"))
 
 (diag "fetch with conditions")
-(is (fetch 'person :first :conditions '(:name "Eitarow Fukamachi")) nil)
+(isnt (fetch 'person :first :conditions '(:name "Eitarow Fukamachi")) nil)
 
 (diag "fetch with where")
 (isnt (fetch 'person :first :where "name = \"Eitarow Fukamachi\"") nil)

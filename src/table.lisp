@@ -21,7 +21,10 @@
                 :select
                 :sql-expression
                 :sql-operator
-                :table-exists-p)
+                :table-exists-p
+                :sql-and
+                :sql-=
+                :sql-in)
   (:import-from :clsql-sys :standard-db-class)
   (:import-from :ponzu.db.record
                 :<ponzu-db-record>
@@ -30,8 +33,6 @@
            :deftable
            :create-instance
            :fetch))
-
-(enable-sql-reader-syntax)
 
 (defclass <ponzu-db-table> (clsql-sys::standard-db-class) ()
   (:documentation "Metaclass for database tables."))
@@ -45,6 +46,11 @@ Example:
     (save new-instance)
     new-instance))
 
+(defun remove-nil-from-plist (plist)
+  (loop for (k v) on plist by #'cddr
+        unless (eq v nil)
+          append (list k v)))
+
 (defun fetch (table ids-or-key
               &key where conditions order offset limit group-by)
   "Find records from `table' and return it.
@@ -57,24 +63,45 @@ Example:
   (fetch 'person :conditions '(:country \"jp\"))"
   (etypecase ids-or-key
     (keyword (ecase ids-or-key
-               (:first (car (select table :limit 1 :offset offset :flatp t)))
+               (:first
+                (car
+                 (apply #'select table :flatp t
+                        (remove-nil-from-plist
+                         `(:limit 1
+                           :offset ,offset
+                           :order ,order
+                           :group-by ,group-by
+                           :where ,(cond
+                                     ((and where conditions)
+                                      (sql-and where (normalize-conditions conditions)))
+                                     (where where)
+                                     (conditions (normalize-conditions conditions))))))))
                (:all (select table :flatp t))))
     (number
-     (car (select table
-                  :where
-                  (cond
-                    ((and where conditions)
-                     [and [= [id] ids-or-key] where (normalize-conditions conditions)])
-                    (where [and [= [id] ids-or-key] where])
-                    (conditions [and [= [id] ids-or-key] (normalize-conditions conditions)])
-                    (t [= [id] ids-or-key]))
-                  :flatp t)))
-    (cons (select table
-                  :where
-                  (if where
-                      [and [in [id] ids-or-key] where]
-                      [in [id] ids-or-key])
-                  :flatp t))))
+     (car
+      (apply #'select table
+             :where
+             (cond
+               ((and where conditions)
+                (sql-and (sql-= (sql-expression :attribute "id") ids-or-key) where (normalize-conditions conditions)))
+               (where (sql-and (sql-= (sql-expression :attribute "id") ids-or-key) where))
+               (conditions (sql-and (sql-= (sql-expression :attribute "id") ids-or-key) (normalize-conditions conditions)))
+               (t (sql-= (sql-expression :attribute "id") ids-or-key)))
+             :flatp t
+             (remove-nil-from-plist
+              `(:order ,order :group-by ,group-by)))))
+    (cons
+     (apply #'select table
+            :where
+            (if where
+                (sql-and (sql-in (sql-expression :attribute "id") ids-or-key) where)
+                (sql-in (sql-expression :attribute "id") ids-or-key))
+            :flatp t
+            (remove-nil-from-plist
+             `(:limit ,limit
+               :offset ,offset
+               :order ,order
+               :group-by ,group-by))))))
 
 (defmacro deftable (class supers slots &optional cl-options)
   "Define a table schema. This is just a wrapper of `clsql:def-view-class',
@@ -90,6 +117,6 @@ so, see CLSQL documentation to get more informations.
        (create-view-from-class ',class))))
 
 (defun normalize-conditions (conditions)
-  `(,(sql-operator 'and)
-     ,@(loop for (k v) on conditions by #'cddr
-             collect [= (sql-expression 'argument k) v])))
+  (apply #'sql-and
+         (loop for (k v) on conditions by #'cddr
+               collect (sql-= (sql-expression :attribute (symbol-name k)) v))))
