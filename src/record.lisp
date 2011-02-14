@@ -34,6 +34,6 @@
   "Delete this instance from the database."
   (delete-instance-records this))
 
-(defmethod attributes ((this <ponzu-db-table>))
+(defmethod attributes ((this <ponzu-db-record>))
   "Return a list of slot names."
   (list-attributes this))
