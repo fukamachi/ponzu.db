@@ -28,16 +28,16 @@
   (:import-from :clsql-sys :standard-db-class)
   (:import-from :ponzu.db.record
                 :<ponzu-db-record>
-                :save)
-  (:export :<ponzu-db-table>
-           :deftable
-           :create-instance
-           :fetch))
+                :save))
 
+(cl-annot:enable-annot-syntax)
+
+@export
 (defclass <ponzu-db-table> (clsql-sys::standard-db-class) ()
   (:documentation "Metaclass for database tables."))
 
-(defun create-instance (table &rest initargs)
+@export
+(defmethod create-instance ((table <ponzu-db-table>) &rest initargs)
   "Same as `make-instance' except for calling `save' it then.
 
 Example:
@@ -51,16 +51,18 @@ Example:
         unless (eq v nil)
           append (list k v)))
 
-(defun fetch (table ids-or-key
-              &key where conditions order offset limit group-by)
+@export
+(defmethod fetch ((table <ponzu-db-table>) ids-or-key
+                  &key where conditions order offset limit group-by)
   "Find records from `table' and return it.
 `ids-or-key' must be :first, :all, or a number, represents primary key, or the list.
 
 Example:
   ;; Fetch a record, id=1.
-  (fetch 'person 1)
+  (fetch person 1)
   ;; Fetch records, country=jp
-  (fetch 'person :conditions '(:country \"jp\"))"
+  (fetch person :conditions '(:country \"jp\"))"
+  (setf table (class-name table))
   (etypecase ids-or-key
     (keyword (ecase ids-or-key
                (:first
@@ -103,18 +105,20 @@ Example:
                :order ,order
                :group-by ,group-by))))))
 
+@export
 (defmacro deftable (class supers slots &optional cl-options)
   "Define a table schema. This is just a wrapper of `clsql:def-view-class',
 so, see CLSQL documentation to get more informations.
 <http://clsql.b9.com/manual/def-view-class.html>"
   `(prog1
-     (clsql:def-view-class ,class ,(cons '<ponzu-db-record> supers)
+     (clsql:def-view-class ,class (<ponzu-db-record> ,@supers)
       ,slots
       ,@(if (find :metaclass `,cl-options :key #'car)
             `,cl-options
             (cons '(:metaclass <ponzu-db-table>) `,cl-options)))
      (unless (table-exists-p ',class)
-       (create-view-from-class ',class))))
+       (create-view-from-class ',class))
+     (setf ,class (find-class ',class))))
 
 (defun normalize-conditions (conditions)
   (apply #'sql-and

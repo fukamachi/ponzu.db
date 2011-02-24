@@ -5,7 +5,7 @@
         :ponzu.db.table
         :ponzu.db.record))
 
-(plan nil)
+(plan 8)
 
 (defvar *db* nil)
 (setf *db*
@@ -26,33 +26,33 @@
     :type string
     :initform "")))
 
-(is (fetch 'person 1) nil "table is empty")
+(is (fetch person 1) nil "table is empty")
 
 (diag "insert new record")
 (let ((me (make-instance 'person)))
   (setf (slot-value me 'name) "Eitarow Fukamachi")
   (save me))
-(let ((rec (fetch 'person :first)))
+(let ((rec (fetch person :first)))
   (is-type rec 'person)
   (is (slot-value rec 'name) "Eitarow Fukamachi" "inserted record"))
 
 (diag "fetch with conditions")
-(isnt (fetch 'person :first :conditions '(:name "Eitarow Fukamachi")) nil)
+(isnt (fetch person :first :conditions '(:name "Eitarow Fukamachi")) nil)
 
 (diag "fetch with where")
-(isnt (fetch 'person :first :where (clsql:sql-= (clsql:sql-expression :attribute "name") "Eitarow Fukamachi")) nil)
+(isnt (fetch person :first :where (clsql:sql-= (clsql:sql-expression :attribute "name") "Eitarow Fukamachi")) nil)
 
 (diag "update record")
-(let ((rec (fetch 'person :first)))
+(let ((rec (fetch person :first)))
   (setf (slot-value rec 'name) "Tomohiro Matsuyama")
   (save rec))
-(let ((rec (fetch 'person :first)))
+(let ((rec (fetch person :first)))
   (is-type rec 'person)
   (is (slot-value rec 'name) "Tomohiro Matsuyama" "updated"))
 
 (diag "delete")
-(destroy (fetch 'person :first))
-(is (fetch 'person :first) nil "destroy")
+(destroy (fetch person :first))
+(is (fetch person :first) nil "destroy")
 
 (clsql:disconnect)
 

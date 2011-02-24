@@ -9,7 +9,8 @@
   :version "1.0"
   :author "Eitarow Fukamachi"
   :license "LLGPL"
-  :depends-on (:clsql)
+  :depends-on (:clsql
+               :cl-annot)
   :components ((:module "src"
                 :serial t
                 :components
