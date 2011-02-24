@@ -139,8 +139,8 @@ so, see CLSQL documentation to get more informations.
       ,@(if (find :metaclass `,cl-options :key #'car)
             `,cl-options
             (cons '(:metaclass <ponzu-db-table>) `,cl-options)))
-     (unless (table-exists-p ',class)
-       (create-view-from-class ',class))
+;     (unless (table-exists-p ',class)
+;       (create-view-from-class ',class))
      (setf ,class (find-class ',class))))
 
 (defun normalize-conditions (conditions)
