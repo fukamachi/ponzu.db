@@ -17,23 +17,26 @@
   (:use :cl)
   (:import-from :clsql
                 :update-records-from-instance
-                :delete-instance-records)
-  (:export :<ponzu.db.record>
-           :save
-           :destroy
-           :attributes))
+                :delete-instance-records))
 
+(cl-annot:enable-annot-syntax)
+
+@export
 (defclass <ponzu-db-record> () ()
   (:documentation "Class for table instances, represents database record."))
 
+@export
 (defmethod save ((this <ponzu-db-record>))
   "Save this instance and reflect slot values to database."
   (update-records-from-instance this))
 
+@export
 (defmethod destroy ((this <ponzu-db-record>))
-  "Delete this instance from the database."
+  "Delete this instance from the database.
+I want to use `delete' for this name, but it is already used in very famous package :p."
   (delete-instance-records this))
 
+@export
 (defmethod attributes ((this <ponzu-db-record>))
   "Return a list of slot names."
   (list-attributes this))
