@@ -52,6 +52,12 @@ Example:
           append (list k v)))
 
 @export
+(defmethod fetch ((table symbol) ids-or-key
+                  &key where conditions order offset limit group-by)
+  (fetch (find-class table) ids-or-key
+         where conditions order offset limit group-by))
+
+@export
 (defmethod fetch ((table <ponzu-db-table>) ids-or-key
                   &key where conditions order offset limit group-by)
   "Find records from `table' and return it.

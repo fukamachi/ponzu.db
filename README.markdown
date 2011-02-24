@@ -17,7 +17,7 @@ PonzuDB is an O/R Mapper for Common lisp, based on CLSQL.
       (setf (name me) "Eitarow Fukamachi")
       (save me))
     
-    (fetch 'person :first)
+    (fetch person :first)
     ;;=> #<PERSON #x3020015CABBD>
 
 ## Schema Definition
