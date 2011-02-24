@@ -41,6 +41,9 @@
 (diag "fetch with where")
 (isnt (fetch person :first :where (clsql:sql-= (clsql:sql-expression :attribute "name") "Eitarow Fukamachi")) nil)
 
+(diag "count records")
+(is (fetch person :count) 1)
+
 (diag "update record")
 (let ((rec (fetch person :first)))
   (setf (slot-value rec 'name) "Tomohiro Matsuyama")

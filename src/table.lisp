@@ -24,7 +24,8 @@
                 :table-exists-p
                 :sql-and
                 :sql-=
-                :sql-in)
+                :sql-in
+                :sql-count)
   (:import-from :clsql-sys :standard-db-class)
   (:import-from :ponzu.db.record
                 :<ponzu-db-record>
@@ -88,6 +89,18 @@ Example:
                                       (sql-and where (normalize-conditions conditions)))
                                      (where where)
                                      (conditions (normalize-conditions conditions))))))))
+               (:count
+                (car
+                 (apply #'select (sql-count (sql-expression :attribute "*")) :from table :flatp t
+                  (remove-nil-from-plist
+                   `(:offset ,offset
+                     :order ,order
+                     :group-by ,group-by
+                     :where ,(cond
+                               ((and where conditions)
+                                (sql-and where (normalize-conditions conditions)))
+                               (where where)
+                               (conditions (normalize-conditions conditions))))))))
                (:all (select table :flatp t))))
     (number
      (car
