@@ -16,4 +16,5 @@
                 :components
                 ((:file "util")
                  (:file "record")
-                 (:file "table")))))
+                 (:file "table")
+                 (:file "ponzu.db")))))

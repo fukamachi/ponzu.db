@@ -37,6 +37,10 @@
   (:documentation "Metaclass for database tables."))
 
 @export
+(defmethod create-instance ((table symbol) &rest initargs)
+  (apply #'create-instance (find-class table) initargs))
+
+@export
 (defmethod create-instance ((table <ponzu-db-table>) &rest initargs)
   "Same as `make-instance' except for calling `save' it then.
 

@@ -2,8 +2,7 @@
   (:use :cl
         :cl-test-more
         :clsql
-        :ponzu.db.table
-        :ponzu.db.record))
+        :ponzu.db))
 
 (plan 8)
 
