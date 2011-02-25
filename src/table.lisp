@@ -146,4 +146,4 @@ so, see CLSQL documentation to get more informations.
 (defun normalize-conditions (conditions)
   (apply #'sql-and
          (loop for (k v) on conditions by #'cddr
-               collect (sql-= (sql-expression :attribute (symbol-name k)) v))))
+               collect (sql-= (sql-expression :attribute k) v))))
