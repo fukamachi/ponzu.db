@@ -58,18 +58,18 @@ Example:
 
 @export
 (defmethod fetch ((table symbol) ids-or-key
-                  &key where conditions order offset limit group-by)
+                  &key where conditions order-by offset limit group-by)
   (fetch (find-class table) ids-or-key
          :where where
          :conditions conditions
-         :order order
+         :order-by order-by
          :offset offset
          :limit limit
          :group-by group-by))
 
 @export
 (defmethod fetch ((table <ponzu-db-table>) ids-or-key
-                  &key where conditions order offset limit group-by)
+                  &key where conditions order-by offset limit group-by)
   "Find records from `table' and return it.
 `ids-or-key' must be :first, :all, or a number, represents primary key, or the list.
 
@@ -87,7 +87,7 @@ Example:
                         (remove-nil-from-plist
                          `(:limit 1
                            :offset ,offset
-                           :order ,order
+                           :order-by ,(normalize-order-by order-by)
                            :group-by ,group-by
                            :where ,(cond
                                      ((and where conditions)
@@ -99,14 +99,25 @@ Example:
                  (apply #'select (sql-count (sql-expression :attribute "*")) :from table :flatp t
                   (remove-nil-from-plist
                    `(:offset ,offset
-                     :order ,order
+                     :order-by ,(normalize-order-by order-by)
                      :group-by ,group-by
                      :where ,(cond
                                ((and where conditions)
                                 (sql-and where (normalize-conditions conditions)))
                                (where where)
                                (conditions (normalize-conditions conditions))))))))
-               (:all (select table :flatp t))))
+               (:all
+                (apply #'select table :flatp t
+                        (remove-nil-from-plist
+                         `(:limit ,limit
+                           :offset ,offset
+                           :order-by ,(normalize-order-by order-by)
+                           :group-by ,group-by
+                           :where ,(cond
+                                     ((and where conditions)
+                                      (sql-and where (normalize-conditions conditions)))
+                                     (where where)
+                                     (conditions (normalize-conditions conditions)))))))))
     ((or number string)
      (car
       (apply #'select table
@@ -119,7 +130,7 @@ Example:
                (t (sql-= (sql-expression :attribute "id") ids-or-key)))
              :flatp t
              (remove-nil-from-plist
-              `(:order ,order :group-by ,group-by)))))
+              `(:order-by ,(normalize-order-by order-by) :group-by ,group-by)))))
     (cons
      (apply #'select table
             :where
@@ -130,7 +141,7 @@ Example:
             (remove-nil-from-plist
              `(:limit ,limit
                :offset ,offset
-               :order ,order
+               :order-by ,(normalize-order-by order-by)
                :group-by ,group-by))))))
 
 @export
@@ -152,3 +163,7 @@ so, see CLSQL documentation to get more informations.
   (apply #'sql-and
          (loop for (k v) on conditions by #'cddr
                collect (sql-= (sql-expression :attribute k) v))))
+
+(defun normalize-order-by (order-by)
+  (loop for (k v) on order-by by #'cddr
+        collect (list (sql-expression :attribute k) v)))
