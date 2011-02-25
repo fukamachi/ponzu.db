@@ -60,7 +60,12 @@ Example:
 (defmethod fetch ((table symbol) ids-or-key
                   &key where conditions order offset limit group-by)
   (fetch (find-class table) ids-or-key
-         where conditions order offset limit group-by))
+         :where where
+         :conditions conditions
+         :order order
+         :offset offset
+         :limit limit
+         :group-by group-by))
 
 @export
 (defmethod fetch ((table <ponzu-db-table>) ids-or-key
@@ -133,7 +138,7 @@ Example:
   "Define a table schema. This is just a wrapper of `clsql:def-view-class',
 so, see CLSQL documentation to get more informations.
 <http://clsql.b9.com/manual/def-view-class.html>"
-  `(prog1
+  `(progn
      (clsql:def-view-class ,class (<ponzu-db-record> ,@supers)
       ,slots
       ,@(if (find :metaclass `,cl-options :key #'car)
@@ -141,9 +146,9 @@ so, see CLSQL documentation to get more informations.
             (cons '(:metaclass <ponzu-db-table>) `,cl-options)))
 ;     (unless (table-exists-p ',class)
 ;       (create-view-from-class ',class))
-     (setf ,class (find-class ',class))))
+     (defvar ,class (find-class ',class))))
 
 (defun normalize-conditions (conditions)
   (apply #'sql-and
          (loop for (k v) on conditions by #'cddr
-               collect (sql-= (sql-expression :attribute (symbol-name k)) v))))
+               collect (sql-= (sql-expression :attribute k) v))))
