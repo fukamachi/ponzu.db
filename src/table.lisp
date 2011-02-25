@@ -107,7 +107,7 @@ Example:
                                (where where)
                                (conditions (normalize-conditions conditions))))))))
                (:all (select table :flatp t))))
-    (number
+    ((or number string)
      (car
       (apply #'select table
              :where
